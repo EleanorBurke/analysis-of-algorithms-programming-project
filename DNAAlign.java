@@ -1,7 +1,20 @@
 import java.util.*;
-
+import java.io.*;
 
 public class DNAAlign {
+// Similarity matrix for mismatch penalties
+// Index mapping: A=0, C=1, G=2, T=3
+    private int[][] similarityMatrix;
+
+    // Character to index mapping
+    private static final Map<Character, Integer> charToIndex = new HashMap<>();
+    static {
+        charToIndex.put('A', 0);
+        charToIndex.put('C', 1);
+        charToIndex.put('G', 2);
+        charToIndex.put('T', 3);
+    }
+
     // first dna sequence
     private String s;
     // second dna sequence
@@ -16,16 +29,45 @@ public class DNAAlign {
         this.delta = delta;
     }
 
-
-    // Returns the mismatch penalty for two nucleotide characters using the similarity matrix.
-    public int mismatchPenalty(char a, char b) {
-        // TODO
-        return 1;
+        /**
+     * Sets the similarity matrix from a 2D array.
+     * Assumes the matrix is indexed in the order A, C, G, T.
+     * 
+     * @param matrix a 4x4 similarity matrix
+     */
+    public void setSimilarityMatrix(int[][] matrix) {
+        this.similarityMatrix = matrix;
     }
 
-    private void readInput(){
-        //TODO
-    }
+
+        // Returns the mismatch penalty for two nucleotide characters using the similarity matrix.
+        public int mismatchPenalty(char a, char b) {
+            // TODO
+            return 1;
+        }
+
+        private void readInput(String filename) throws IOException {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            
+            // Read gap penalty
+            delta = Integer.parseInt(reader.readLine().trim());
+            
+            // Read similarity matrix
+            int[][] matrix = new int[4][4];
+            for (int i = 0; i < 4; i++) {
+                String[] values = reader.readLine().trim().split("\\s+");
+                for (int j = 0; j < 4; j++) {
+                    matrix[i][j] = Integer.parseInt(values[j]);
+                }
+            }
+            setSimilarityMatrix(matrix);
+            
+            // Read sequences
+            s = reader.readLine().trim();
+            t = reader.readLine().trim();
+            
+            reader.close();
+        }
 
     public void align(String s, String t) {
         int m = s.length();
@@ -105,10 +147,53 @@ public class DNAAlign {
     }
 
     private void printAlignment(ArrayList<Character> alignS, ArrayList<Character> alignT, ArrayList<Integer> penalties, int minDist){
-        //TODO
+          System.out.println("The best alignment is\n");
+        
+        // Print first sequence
+        for (Character c : alignS) {
+            System.out.print(c + " ");
+        }
+        System.out.println();
+        
+        // Print second sequence
+        for (Character c : alignT) {
+            System.out.print(c + " ");
+        }
+        System.out.println();
+        
+        // Print penalties
+        for (Integer p : penalties) {
+            System.out.print(p + " ");
+        }
+        System.out.println();
+        
+        // Print minimum edit distance
+        System.out.println("\nwith the minimum edit distance of " + minDist + ".");
     }
 
     public static void main(String[] args) {
-        //TODO
+         if (args.length != 1) {
+            System.err.println("Usage: java DNAAlign <input_file>");
+            System.exit(1);
+        }
+        
+        try {
+            // Create DNAAlign object
+            DNAAlign aligner = new DNAAlign("", "", 0);
+            
+            // Read input from file
+            aligner.readInput(args[0]);
+            
+            // Compute and print alignment
+            aligner.align(aligner.s, aligner.t);
+        } catch (IOException e) {
+            System.err.println("Error reading input file: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 }
