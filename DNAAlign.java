@@ -1,9 +1,14 @@
 import java.util.*;
 import java.io.*;
 
+/**
+ * DNA sequence alignment using dynamic programming.
+ *
+ * <p>Authors: Eleanor Burke and Drake Bellisarii
+ */
 public class DNAAlign {
-// Similarity matrix for mismatch penalties
-// Index mapping: A=0, C=1, G=2, T=3
+    // Similarity matrix for mismatch penalties
+    // Index mapping: A=0, C=1, G=2, T=3
     private int[][] similarityMatrix;
 
     // Character to index mapping
@@ -22,53 +27,94 @@ public class DNAAlign {
     // gap penalty
     private int delta;
 
-    // constructor TODO
+    /**
+     * Creates a DNA alignment instance with the provided sequences and gap penalty.
+     *
+     * @param s the first DNA sequence
+     * @param t the second DNA sequence
+     * @param delta the gap penalty
+     */
     public DNAAlign(String s, String t, int delta) {
-        this.s = s;
-        this.t = t;
-        this.delta = delta;
+        this.s = s;             // updated after reading from file
+        this.t = t;             // updated after reading from file  
+        this.delta = delta;     // updated after reading from file
     }
 
-        /**
+    /**
      * Sets the similarity matrix from a 2D array.
      * Assumes the matrix is indexed in the order A, C, G, T.
-     * 
+     *
      * @param matrix a 4x4 similarity matrix
      */
     public void setSimilarityMatrix(int[][] matrix) {
         this.similarityMatrix = matrix;
     }
 
-
-        // Returns the mismatch penalty for two nucleotide characters using the similarity matrix.
-        public int mismatchPenalty(char a, char b) {
-            // TODO
-            return 1;
+    /**
+     * Returns the mismatch penalty for two nucleotide characters.
+     *
+     * @param a the nucleotide from the first sequence
+     * @param b the nucleotide from the second sequence
+     * @return the penalty from the similarity matrix for {@code a} and {@code b}
+     * @throws IllegalArgumentException if either character is not A, C, G, or T
+     */
+    public int mismatchPenalty(char a, char b) {
+        int i;
+        switch (a) {
+            case 'A': i = 0; break;
+            case 'C': i = 1; break;
+            case 'G': i = 2; break;
+            case 'T': i = 3; break;
+            default: throw new IllegalArgumentException("Invalid nucleotide: " + a);
         }
 
-        private void readInput(String filename) throws IOException {
-            BufferedReader reader = new BufferedReader(new FileReader(filename));
-            
-            // Read gap penalty
-            delta = Integer.parseInt(reader.readLine().trim());
-            
-            // Read similarity matrix
-            int[][] matrix = new int[4][4];
-            for (int i = 0; i < 4; i++) {
-                String[] values = reader.readLine().trim().split("\\s+");
-                for (int j = 0; j < 4; j++) {
-                    matrix[i][j] = Integer.parseInt(values[j]);
-                }
+        int j;
+        switch (b) {
+            case 'A': j = 0; break;
+            case 'C': j = 1; break;
+            case 'G': j = 2; break;
+            case 'T': j = 3; break;
+            default: throw new IllegalArgumentException("Invalid nucleotide: " + b);
+        }
+
+        return similarityMatrix[i][j];
+    }
+
+    /**
+     * Reads the gap penalty, similarity matrix, and sequences from an input file.
+     *
+     * @param filename the path to the input file
+     * @throws IOException if the file cannot be read
+     */
+    private void readInput(String filename) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
+        
+        // Read gap penalty
+        delta = Integer.parseInt(reader.readLine().trim());
+        
+        // Read similarity matrix
+        int[][] matrix = new int[4][4];
+        for (int i = 0; i < 4; i++) {
+            String[] values = reader.readLine().trim().split("\\s+");
+            for (int j = 0; j < 4; j++) {
+                matrix[i][j] = Integer.parseInt(values[j]);
             }
-            setSimilarityMatrix(matrix);
-            
-            // Read sequences
-            s = reader.readLine().trim();
-            t = reader.readLine().trim();
-            
-            reader.close();
         }
+        setSimilarityMatrix(matrix);
+        
+        // Read sequences
+        s = reader.readLine().trim();
+        t = reader.readLine().trim();
+        
+        reader.close();
+    }
 
+    /**
+     * Computes and prints an optimal alignment for two DNA sequences.
+     *
+     * @param s the first DNA sequence
+     * @param t the second DNA sequence
+     */
     public void align(String s, String t) {
         int m = s.length();
         int n = t.length();
@@ -77,18 +123,18 @@ public class DNAAlign {
         int[][] dp = new int[m + 1][n + 1];
 
         for (int i = 0; i <= m; i++) {
-            dp[i][0] = i;
+            dp[i][0] = i * delta; 
         }
         for (int j = 0; j <= n; j++) {
-            dp[0][j] = j;
+            dp[0][j] = j * delta;
         }
 
         // fill the dp table with proper scores based on the mismatch penalty and gap penalties
         for (int i = 1; i <= m; i++) {
             for (int j = 1; j <= n; j++) {
                 int mismatch = dp[i-1][j-1] + mismatchPenalty(s.charAt(i-1), t.charAt(j-1));
-                int gapS = dp[i][j-1] + 1; // gap in s
-                int gapT = dp[i-1][j] + 1; // gap in t
+                int gapS = dp[i][j-1] + delta; // gap in s
+                int gapT = dp[i-1][j] + delta; // gap in t
                 dp[i][j] = Math.min(mismatch, Math.min(gapS, gapT));
             }
         }
@@ -146,6 +192,14 @@ public class DNAAlign {
        printAlignment(alignedS, alignedT, penalties, minEditDist);
     }
 
+    /**
+     * Prints the aligned sequences, per-position penalties, and minimum edit distance.
+     *
+     * @param alignS the aligned first sequence
+     * @param alignT the aligned second sequence
+     * @param penalties the penalty values for each aligned position
+     * @param minDist the minimum edit distance of the alignment
+     */
     private void printAlignment(ArrayList<Character> alignS, ArrayList<Character> alignT, ArrayList<Integer> penalties, int minDist){
           System.out.println("The best alignment is\n");
         
@@ -171,6 +225,11 @@ public class DNAAlign {
         System.out.println("\nwith the minimum edit distance of " + minDist + ".");
     }
 
+    /**
+     * Runs the DNA alignment program using an input file path supplied on the command line.
+     *
+     * @param args command-line arguments; expects one input file path
+     */
     public static void main(String[] args) {
          if (args.length != 1) {
             System.err.println("Usage: java DNAAlign <input_file>");
