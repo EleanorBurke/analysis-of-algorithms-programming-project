@@ -1,4 +1,4 @@
-# CPSC 320: Analysis of Algorithms– Coding Assignment
+# CPSC 320: Analysis of Algorithms– Programming Project
 ## By Drake Bellisarii and Eleanor Burke
 
 ### DNA Sequence Alignment Program
