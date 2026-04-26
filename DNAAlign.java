@@ -119,27 +119,28 @@ public class DNAAlign {
         int m = s.length();
         int n = t.length();
 
-        // create a 2D array to store the alignment scores
-        int[][] dp = new int[m + 1][n + 1];
+        // create a 2D array to store the alignment scores (AS)
+        int[][] AS = new int[m + 1][n + 1];
 
+        // Initialize the AS table
         for (int i = 0; i <= m; i++) {
-            dp[i][0] = i * delta; 
+            AS[i][0] = i * delta;
         }
         for (int j = 0; j <= n; j++) {
-            dp[0][j] = j * delta;
+            AS[0][j] = j * delta;
         }
 
-        // fill the dp table with proper scores based on the mismatch penalty and gap penalties
+        // fill the AS table with proper scores based on the mismatch penalty and gap penalties
         for (int i = 1; i <= m; i++) {
             for (int j = 1; j <= n; j++) {
-                int mismatch = dp[i-1][j-1] + mismatchPenalty(s.charAt(i-1), t.charAt(j-1));
-                int gapS = dp[i][j-1] + delta; // gap in s
-                int gapT = dp[i-1][j] + delta; // gap in t
-                dp[i][j] = Math.min(mismatch, Math.min(gapS, gapT));
+                int mismatch = AS[i-1][j-1] + mismatchPenalty(s.charAt(i-1), t.charAt(j-1));
+                int gapS = AS[i][j-1] + delta; // gap in s
+                int gapT = AS[i-1][j] + delta; // gap in t
+                AS[i][j] = Math.min(mismatch, Math.min(gapS, gapT));
             }
         }
 
-        int minEditDist = dp[m][n];
+        int minEditDist = AS[m][n];
 
         // Backtrack to find the aligned sequences
         ArrayList<Character> alignedS = new ArrayList<>();
@@ -149,17 +150,17 @@ public class DNAAlign {
         int i = m, j = n;
         while (i > 0 || j > 0) {
             if (i > 0 && j > 0){
-                int mismatch = dp[i-1][j-1] + mismatchPenalty(s.charAt(i-1), t.charAt(j-1));
-                int gapT = delta + dp[i-1][j]; 
+                int mismatch = AS[i-1][j-1] + mismatchPenalty(s.charAt(i-1), t.charAt(j-1));
+                int gapT = delta + AS[i-1][j];
 
-                if (dp[i][j] == mismatch) {
+                if (AS[i][j] == mismatch) {
                     alignedS.add(s.charAt(i-1));
                     alignedT.add(t.charAt(j-1));
                     penalties.add(mismatchPenalty(s.charAt(i-1), t.charAt(j-1)));
                     i--;
                     j--;
                     continue;
-                } else if (dp[i][j] == gapT) {
+                } else if (AS[i][j] == gapT) {
                     alignedS.add(s.charAt(i-1));
                     alignedT.add('-');
                     penalties.add(delta);
